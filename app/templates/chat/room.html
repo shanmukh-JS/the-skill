@@ -34,7 +34,7 @@
           {% for msg in messages %}
             {% set is_me = (msg.sender_id == current_user.id) %}
             <div class="message-bubble {% if is_me %}message-sent{% else %}message-received{% endif %}">
-              <div class="small text-muted mb-1" style="{% if is_me %}color: #e0e7ff !important;{% endif %}">{{ msg.sender.username }}</div>
+              <div class="small text-muted mb-1"{% if is_me %} style="color: #e0e7ff !important;"{% endif %}>{{ msg.sender.username }}</div>
               <div>{{ msg.content }}</div>
               <div class="small text-end mt-1 opacity-75" style="font-size: 0.7rem;">{{ msg.sent_at.strftime('%Y-%m-%d %H:%M:%S') }}</div>
             </div>
