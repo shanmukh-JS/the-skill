@@ -35,15 +35,16 @@ class ProductionConfig(Config):
     TESTING = False
     SESSION_COOKIE_SECURE = True
     
+    db_url = os.environ.get('DATABASE_URL', f"sqlite:///{basedir / 'app.db'}")
+    if db_url and db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
+    SQLALCHEMY_DATABASE_URI = db_url
+
     @classmethod
     def init_app(cls, app):
         secret = os.environ.get('SECRET_KEY')
         if not secret or secret == 'dev-secret-key-fallback-change-in-prod':
             raise ValueError("CRITICAL SECURITY RISK: ProductionConfig selected but SECRET_KEY environment variable is missing or insecure!")
-        
-        db_url = os.environ.get('DATABASE_URL')
-        if not db_url:
-            raise ValueError("CRITICAL CONFIGURATION ERROR: ProductionConfig selected but DATABASE_URL is missing!")
 
 config = {
     'development': DevelopmentConfig,
