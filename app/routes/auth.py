@@ -7,6 +7,7 @@ from app.extensions import db
 from app.models.user import User
 from app.forms.auth_forms import RegistrationForm, LoginForm, ChangePasswordForm, ForgotPasswordForm, ResetPasswordForm
 from app.utils.rate_limiter import is_rate_limited, record_failed_login, reset_failed_logins
+from app.utils.email import send_password_reset_email
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -17,6 +18,11 @@ def get_serializer():
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('dashboard.index'))
+        
+    client_ip = request.remote_addr or '127.0.0.1'
+    if is_rate_limited(client_ip, 'register_attempt'):
+        flash('Too many registration attempts from your IP. Please try again in 15 minutes.', 'danger')
+        return render_template('auth/register.html', form=RegistrationForm())
     
     form = RegistrationForm()
     if form.validate_on_submit():
@@ -104,6 +110,11 @@ def forgot_password():
     if current_user.is_authenticated:
         return redirect(url_for('dashboard.index'))
         
+    client_ip = request.remote_addr or '127.0.0.1'
+    if is_rate_limited(client_ip, 'forgot_password_attempt'):
+        flash('Too many password reset requests from your IP. Please try again in 15 minutes.', 'danger')
+        return render_template('auth/forgot_password.html', form=ForgotPasswordForm())
+        
     form = ForgotPasswordForm()
     if form.validate_on_submit():
         email = form.email.data.strip().lower()
@@ -115,8 +126,8 @@ def forgot_password():
             token = s.dumps({'email': user.email, 'hash': hash_binding}, salt='password-reset-salt')
             reset_url = url_for('auth.reset_password', token=token, _external=True)
             
-            if current_app.debug:
-                current_app.logger.debug(f"Password reset link generated for {user.email}")
+            # Dispatch email via SMTP/logger
+            send_password_reset_email(user.email, reset_url)
             
         # Generic flash message to avoid user enumeration
         flash('If an account with that email exists, a password reset link has been generated/sent.', 'info')

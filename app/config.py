@@ -18,6 +18,14 @@ class Config:
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
 
+    # Mail Server Configuration
+    MAIL_SERVER = os.environ.get('MAIL_SERVER')
+    MAIL_PORT = int(os.environ.get('MAIL_PORT', 587))
+    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'True').lower() in ('true', '1', 't')
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
+    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', os.environ.get('MAIL_USERNAME', 'noreply@skillexchange.org'))
+
 def format_db_url(db_url):
     if not db_url:
         return f"sqlite:///{basedir / 'app.db'}"
@@ -49,7 +57,10 @@ class ProductionConfig(Config):
     def init_app(cls, app):
         secret = os.environ.get('SECRET_KEY')
         if not secret or secret == 'dev-secret-key-fallback-change-in-prod':
-            app.logger.warning("ProductionConfig: SECRET_KEY not explicitly set; using fallback secret key.")
+            raise ValueError(
+                "CRITICAL SECURITY ERROR: SECRET_KEY environment variable MUST be explicitly set "
+                "in ProductionConfig! Refusing to run production server with insecure fallback secret."
+            )
 
 config = {
     'development': DevelopmentConfig,

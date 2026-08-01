@@ -8,7 +8,8 @@ def app():
     app = create_app('testing')
     with app.app_context():
         _db.create_all()
-        yield app
+    yield app
+    with app.app_context():
         _db.session.remove()
         _db.drop_all()
 

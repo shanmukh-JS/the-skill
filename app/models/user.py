@@ -23,7 +23,7 @@ class User(UserMixin, db.Model):
     sent_requests = db.relationship('Request', foreign_keys='Request.sender_id', backref='sender', lazy='dynamic')
     received_requests = db.relationship('Request', foreign_keys='Request.receiver_id', backref='receiver', lazy='dynamic')
     ratings_given = db.relationship('Rating', foreign_keys='Rating.rater_id', backref='rater', lazy='dynamic')
-    ratings_received = db.relationship('Rating', foreign_keys='Rating.rated_user_id', backref='rated_user', lazy='dynamic')
+    ratings_received = db.relationship('Rating', foreign_keys='Rating.rated_user_id', backref='rated_user', lazy='selectin')
     learning_records = db.relationship('LearningHistory', backref='user', lazy='dynamic')
     notifications = db.relationship('Notification', backref='user', lazy='dynamic', cascade='all, delete-orphan')
 
@@ -37,18 +37,11 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password_hash, password)
 
     def average_rating(self):
-        from app.models.rating import Rating
-        if 'ratings_received' in self.__dict__ and isinstance(self.__dict__['ratings_received'], list):
-            scores = [r.score for r in self.ratings_received]
-            return round(sum(scores) / len(scores), 1) if scores else 0.0
-        avg_score = db.session.query(func.avg(Rating.score)).filter(Rating.rated_user_id == self.id).scalar()
-        return round(float(avg_score), 1) if avg_score is not None else 0.0
+        scores = [r.score for r in self.ratings_received] if self.ratings_received else []
+        return round(sum(scores) / len(scores), 1) if scores else 0.0
 
     def rating_count(self):
-        from app.models.rating import Rating
-        if 'ratings_received' in self.__dict__ and isinstance(self.__dict__['ratings_received'], list):
-            return len(self.ratings_received)
-        return Rating.query.filter_by(rated_user_id=self.id).count()
+        return len(self.ratings_received) if self.ratings_received else 0
 
     def completed_teaching_count(self):
         from app.models.history import LearningHistory

@@ -15,11 +15,12 @@ requests_bp = Blueprint('requests', __name__, url_prefix='/requests')
 @login_required
 def list_requests():
     tab = request.args.get('tab', 'received')
+    page = request.args.get('page', 1, type=int)
     if tab == 'sent':
-        reqs = Request.query.filter_by(sender_id=current_user.id).order_by(Request.created_at.desc()).all()
+        pagination = Request.query.filter_by(sender_id=current_user.id).order_by(Request.created_at.desc()).paginate(page=page, per_page=15, error_out=False)
     else:
-        reqs = Request.query.filter_by(receiver_id=current_user.id).order_by(Request.created_at.desc()).all()
-    return render_template('requests/list.html', requests=reqs, tab=tab)
+        pagination = Request.query.filter_by(receiver_id=current_user.id).order_by(Request.created_at.desc()).paginate(page=page, per_page=15, error_out=False)
+    return render_template('requests/list.html', requests=pagination.items, pagination=pagination, tab=tab)
 
 @requests_bp.route('/send/<int:skill_id>', methods=['GET', 'POST'])
 @login_required

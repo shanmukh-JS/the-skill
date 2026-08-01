@@ -67,13 +67,14 @@ def index():
 @login_required
 def history():
     role_filter = request.args.get('role', 'all')
+    page = request.args.get('page', 1, type=int)
     query = LearningHistory.query.filter_by(user_id=current_user.id)
 
     if role_filter in ['teacher', 'learner']:
         query = query.filter_by(role=role_filter)
 
-    records = query.order_by(LearningHistory.completed_at.desc()).all()
-    return render_template('dashboard/history.html', records=records, role_filter=role_filter)
+    pagination = query.order_by(LearningHistory.completed_at.desc()).paginate(page=page, per_page=15, error_out=False)
+    return render_template('dashboard/history.html', records=pagination.items, pagination=pagination, role_filter=role_filter)
 
 @dashboard_bp.route('/notifications')
 @login_required

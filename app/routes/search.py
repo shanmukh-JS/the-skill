@@ -14,9 +14,9 @@ def search_skills():
     teacher_name = request.args.get('teacher', '').strip()
     page = request.args.get('page', 1, type=int)
 
-    # Base query for active skills taught by active users (eager loading ratings to avoid N+1)
+    # Base query for active skills taught by active users (eager loading teacher and ratings to avoid N+1)
     query = Skill.query.options(
-        joinedload(Skill.teacher).joinedload(User.ratings_received)
+        joinedload(Skill.teacher).selectinload(User.ratings_received)
     ).join(User).filter(
         Skill.is_active == True,
         User.is_active == True

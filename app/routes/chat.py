@@ -64,6 +64,8 @@ def send_message(chat_id):
 
     if not content:
         return jsonify({'error': 'Message content cannot be empty'}), 400
+    if len(content) > 5000:
+        return jsonify({'error': 'Message exceeds maximum length of 5000 characters'}), 400
 
     msg = Message(
         chat_id=chat.id,

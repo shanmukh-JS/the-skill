@@ -21,3 +21,12 @@ def test_search_and_filtering(client, teacher_user, app):
     # Search empty state
     res_empty = client.get('/search/?q=NonExistentSkillKeyword')
     assert b'No skills matched your search' in res_empty.data
+
+def test_homepage_rendering_with_skills(client, teacher_user):
+    s = Skill(user_id=teacher_user.id, name='Python Data Science', category='Programming & Tech', proficiency_level='Expert')
+    db.session.add(s)
+    db.session.commit()
+
+    res = client.get('/')
+    assert res.status_code == 200
+    assert b'Python Data Science' in res.data
