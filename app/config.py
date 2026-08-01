@@ -18,12 +18,18 @@ class Config:
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
 
+def format_db_url(db_url):
+    if not db_url:
+        return f"sqlite:///{basedir / 'app.db'}"
+    if db_url.startswith("postgres://"):
+        return db_url.replace("postgres://", "postgresql+pg8000://", 1)
+    if db_url.startswith("postgresql://") and "+pg8000" not in db_url:
+        return db_url.replace("postgresql://", "postgresql+pg8000://", 1)
+    return db_url
+
 class DevelopmentConfig(Config):
     DEBUG = True
-    db_url = os.environ.get('DATABASE_URL') or f"sqlite:///{basedir / 'app.db'}"
-    if db_url and db_url.startswith("postgres://"):
-        db_url = db_url.replace("postgres://", "postgresql://", 1)
-    SQLALCHEMY_DATABASE_URI = db_url
+    SQLALCHEMY_DATABASE_URI = format_db_url(os.environ.get('DATABASE_URL'))
 
 class TestingConfig(Config):
     TESTING = True
@@ -37,11 +43,7 @@ class ProductionConfig(Config):
     DEBUG = False
     TESTING = False
     SESSION_COOKIE_SECURE = True
-    
-    db_url = os.environ.get('DATABASE_URL') or f"sqlite:///{basedir / 'app.db'}"
-    if db_url and db_url.startswith("postgres://"):
-        db_url = db_url.replace("postgres://", "postgresql://", 1)
-    SQLALCHEMY_DATABASE_URI = db_url
+    SQLALCHEMY_DATABASE_URI = format_db_url(os.environ.get('DATABASE_URL'))
 
     @classmethod
     def init_app(cls, app):
