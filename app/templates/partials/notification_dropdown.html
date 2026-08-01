@@ -13,8 +13,8 @@
       <a href="{{ url_for('dashboard.notifications') }}" class="small text-decoration-none">View All</a>
     </li>
     <li><hr class="dropdown-divider"></li>
-    {% if current_user.notifications.count() > 0 %}
-      {% for notif in current_user.notifications.order_by(current_user.notifications.model.created_at.desc()).limit(5).all() %}
+    {% if recent_notifications %}
+      {% for notif in recent_notifications %}
         <li>
           <a class="dropdown-item py-2 px-3 {% if not notif.is_read %}bg-light fw-bold{% endif %}" href="{{ url_for('dashboard.notifications') }}">
             <div class="small">{{ notif.message }}</div>

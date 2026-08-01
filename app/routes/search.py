@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request
 from app.models.skill import Skill
 from app.models.user import User
+from app.models.rating import Rating
 
 search_bp = Blueprint('search', __name__, url_prefix='/search')
 
@@ -41,7 +42,6 @@ def search_skills():
         categories=distinct_categories
     )
 
-from app.models.rating import Rating
 
 @search_bp.route('/teacher/<int:user_id>')
 def teacher_profile(user_id):

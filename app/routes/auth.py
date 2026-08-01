@@ -131,7 +131,7 @@ def reset_password(token):
     s = get_serializer()
     try:
         email = s.loads(token, salt='password-reset-salt', max_age=3600)  # 1 hour expiration
-    except (SignatureExpired, BadTimeSignature):
+    except Exception:
         flash('The password reset link is invalid or has expired. Please request a new one.', 'danger')
         return redirect(url_for('auth.forgot_password'))
         

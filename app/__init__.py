@@ -47,10 +47,26 @@ def create_app(config_name=None):
     @app.context_processor
     def inject_global_vars():
         from flask_login import current_user
+        from app.models.notification import Notification
         if current_user.is_authenticated:
             return {
-                'unread_notif_count': current_user.unread_notification_count()
+                'unread_notif_count': current_user.unread_notification_count(),
+                'recent_notifications': Notification.query
+                    .filter_by(user_id=current_user.id)
+                    .order_by(Notification.created_at.desc())
+                    .limit(5).all()
             }
-        return {'unread_notif_count': 0}
+        return {'unread_notif_count': 0, 'recent_notifications': []}
+
+    # Error handlers
+    from flask import render_template
+    @app.errorhandler(404)
+    def not_found_error(error):
+        return render_template('main/404.html'), 404
+
+    @app.errorhandler(500)
+    def internal_error(error):
+        db.session.rollback()
+        return render_template('main/500.html'), 500
 
     return app
