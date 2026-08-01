@@ -49,3 +49,18 @@ def test_block_self_request(client, test_user, app):
 
     res = client.post(f'/requests/send/{skill.id}', data={'skill_id': skill.id}, follow_redirects=True)
     assert b'cannot send a learning request to yourself' in res.data
+
+def test_duplicate_pending_request_rejection(client, test_user, teacher_user, app):
+    client.post('/auth/login', data={'username_or_email': 'testuser', 'password': 'Password123'})
+
+    skill = Skill(user_id=teacher_user.id, name='Unique Skill', category='Programming & Tech', proficiency_level='Intermediate')
+    db.session.add(skill)
+    db.session.commit()
+
+    # First request
+    res1 = client.post(f'/requests/send/{skill.id}', data={'skill_id': skill.id, 'message': 'First'}, follow_redirects=True)
+    assert b'Learning request sent successfully' in res1.data
+
+    # Second active request attempt
+    res2 = client.post(f'/requests/send/{skill.id}', data={'skill_id': skill.id, 'message': 'Second'}, follow_redirects=True)
+    assert b'already have an active request' in res2.data

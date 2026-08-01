@@ -97,6 +97,8 @@ def change_password():
     return render_template('auth/change_password.html', form=form)
 
 
+import hashlib
+
 @auth_bp.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
     if current_user.is_authenticated:
@@ -109,12 +111,12 @@ def forgot_password():
         
         if user:
             s = get_serializer()
-            token = s.dumps(user.email, salt='password-reset-salt')
+            hash_binding = hashlib.sha256(user.password_hash.encode('utf-8')).hexdigest()[:16]
+            token = s.dumps({'email': user.email, 'hash': hash_binding}, salt='password-reset-salt')
             reset_url = url_for('auth.reset_password', token=token, _external=True)
             
-            # Print reset link to console/log in development mode
-            print(f"\n[DEV MODE - PASSWORD RESET LINK]: User {user.username} -> {reset_url}\n")
-            current_app.logger.info(f"Password reset link generated for {user.email}: {reset_url}")
+            if current_app.debug:
+                current_app.logger.debug(f"Password reset link generated for {user.email}")
             
         # Generic flash message to avoid user enumeration
         flash('If an account with that email exists, a password reset link has been generated/sent.', 'info')
@@ -130,16 +132,29 @@ def reset_password(token):
         
     s = get_serializer()
     try:
-        email = s.loads(token, salt='password-reset-salt', max_age=3600)  # 1 hour expiration
+        data = s.loads(token, salt='password-reset-salt', max_age=3600)  # 1 hour expiration
     except Exception:
         flash('The password reset link is invalid or has expired. Please request a new one.', 'danger')
         return redirect(url_for('auth.forgot_password'))
         
+    if isinstance(data, dict):
+        email = data.get('email')
+        token_hash = data.get('hash')
+    else:
+        email = data
+        token_hash = None
+
     user = User.query.filter(User.email.ilike(email)).first()
     if not user:
         flash('Invalid account identifier.', 'danger')
         return redirect(url_for('auth.forgot_password'))
-        
+
+    # Verify SHA-256 hash binding to invalidate token if password was changed
+    current_hash_binding = hashlib.sha256(user.password_hash.encode('utf-8')).hexdigest()[:16]
+    if token_hash and token_hash != current_hash_binding:
+        flash('This password reset link is no longer valid because the password was previously updated.', 'danger')
+        return redirect(url_for('auth.forgot_password'))
+
     form = ResetPasswordForm()
     if form.validate_on_submit():
         user.set_password(form.password.data)

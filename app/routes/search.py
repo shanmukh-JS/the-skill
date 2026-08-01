@@ -3,6 +3,8 @@ from app.models.skill import Skill
 from app.models.user import User
 from app.models.rating import Rating
 
+from sqlalchemy.orm import joinedload
+
 search_bp = Blueprint('search', __name__, url_prefix='/search')
 
 @search_bp.route('/')
@@ -12,8 +14,10 @@ def search_skills():
     teacher_name = request.args.get('teacher', '').strip()
     page = request.args.get('page', 1, type=int)
 
-    # Base query for active skills taught by active users
-    query = Skill.query.join(User).filter(
+    # Base query for active skills taught by active users (eager loading ratings to avoid N+1)
+    query = Skill.query.options(
+        joinedload(Skill.teacher).joinedload(User.ratings_received)
+    ).join(User).filter(
         Skill.is_active == True,
         User.is_active == True
     )

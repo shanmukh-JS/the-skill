@@ -3,6 +3,9 @@ from app.extensions import db
 
 class Request(db.Model):
     __tablename__ = 'requests'
+    __table_args__ = (
+        db.UniqueConstraint('sender_id', 'receiver_id', 'skill_id', 'status', name='uq_pending_request'),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     sender_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)

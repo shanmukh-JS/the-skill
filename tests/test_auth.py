@@ -78,3 +78,41 @@ def test_database_rate_limiter(app):
         record_failed_login(ip, username)
         
     assert is_rate_limited(ip, username, max_attempts=5) is True
+
+def test_password_reset_token_invalidated_after_password_change(client, test_user, app):
+    from itsdangerous import URLSafeTimedSerializer
+    import hashlib
+    
+    s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+    hash_binding = hashlib.sha256(test_user.password_hash.encode('utf-8')).hexdigest()[:16]
+    token = s.dumps({'email': test_user.email, 'hash': hash_binding}, salt='password-reset-salt')
+
+    # Change password
+    test_user.set_password('NewPassword123!')
+    from app.extensions import db
+    db.session.commit()
+
+    # Attempt to reset password using old token
+    res = client.get(f'/auth/reset-password/{token}', follow_redirects=True)
+    assert b'no longer valid because the password was previously updated' in res.data
+
+def test_forgot_password_stdout_sanitized(client, test_user, capsys):
+    client.post('/auth/forgot-password', data={'email': test_user.email}, follow_redirects=True)
+    captured = capsys.readouterr()
+    assert '[DEV MODE - PASSWORD RESET LINK]' not in captured.out
+    assert test_user.email not in captured.out
+
+def test_multi_device_session_invalidation_on_password_change(app, test_user):
+    c1 = app.test_client()
+    c1.post('/auth/login', data={'username_or_email': 'testuser', 'password': 'Password123'})
+    
+    c2 = app.test_client()
+    c2.post('/auth/login', data={'username_or_email': 'testuser', 'password': 'Password123'})
+
+    # Password change on Device 1
+    c1.post('/auth/change-password', data={'current_password': 'Password123', 'new_password': 'NewPassword123!', 'confirm_password': 'NewPassword123!'}, follow_redirects=True)
+
+    # Device 2 request to protected route
+    res_c2 = c2.get('/dashboard/', follow_redirects=False)
+    assert res_c2.status_code == 302
+    assert '/auth/login' in res_c2.headers.get('Location')

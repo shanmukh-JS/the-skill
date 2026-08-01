@@ -9,7 +9,7 @@ from app.models.user import User
 from app.models.skill import Skill, LearningInterest
 from app.models.rating import Rating
 from app.forms.profile_forms import ProfileEditForm
-from app.utils.validators import allowed_file
+from app.utils.validators import allowed_file, validate_image_stream
 
 profile_bp = Blueprint('profile', __name__, url_prefix='/profile')
 
@@ -44,7 +44,7 @@ def edit_profile():
         
         file = form.profile_picture.data
         if file and file.filename != '':
-            if allowed_file(file.filename):
+            if allowed_file(file.filename) and validate_image_stream(file.stream):
                 ext = file.filename.rsplit('.', 1)[1].lower()
                 unique_filename = f"{uuid.uuid4().hex}.{ext}"
                 
@@ -56,7 +56,7 @@ def edit_profile():
                 
                 current_user.profile_picture = unique_filename
             else:
-                flash('Invalid image format! Only JPG, JPEG, and PNG images are allowed.', 'danger')
+                flash('Invalid image format or corrupted file header! Only valid PNG, JPG, and JPEG images are allowed.', 'danger')
                 return render_template('profile/edit.html', form=form)
                 
         db.session.commit()

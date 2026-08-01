@@ -31,19 +31,26 @@ def index():
     completed_teaching = current_user.completed_teaching_count()
     completed_learning = current_user.completed_learning_count()
 
-    # Recent unread chat messages for quick access
+    # Recent unread chat messages for quick access (optimized single query)
     user_chats = Chat.query.join(Request).filter(
         (Request.sender_id == current_user.id) | (Request.receiver_id == current_user.id),
         Request.status.in_(['accepted', 'completed'])
     ).all()
     
+    user_chat_ids = [c.id for c in user_chats]
     recent_messages = []
-    for chat in user_chats:
-        last_msg = chat.messages.order_by(Message.sent_at.desc()).first()
-        if last_msg:
-            recent_messages.append({'chat': chat, 'message': last_msg})
-    recent_messages.sort(key=lambda x: x['message'].sent_at, reverse=True)
-    recent_messages = recent_messages[:5]
+    if user_chat_ids:
+        latest_msgs = Message.query.filter(
+            Message.chat_id.in_(user_chat_ids)
+        ).order_by(Message.sent_at.desc()).limit(15).all()
+        
+        seen_chats = set()
+        for msg in latest_msgs:
+            if msg.chat_id not in seen_chats:
+                seen_chats.add(msg.chat_id)
+                recent_messages.append({'chat': msg.chat, 'message': msg})
+                if len(recent_messages) == 5:
+                    break
 
     return render_template(
         'dashboard/index.html',

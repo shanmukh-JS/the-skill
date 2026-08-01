@@ -20,11 +20,25 @@ def create_app(config_name=None):
     login_manager.init_app(app)
     csrf.init_app(app)
 
-    # User loader callback
+    # User loader callback (supporting multi-device session invalidation)
     from app.models.user import User
     @login_manager.user_loader
     def load_user(user_id):
-        return db.session.get(User, int(user_id))
+        if not user_id:
+            return None
+        if ':' in str(user_id):
+            uid, pass_sig = str(user_id).split(':', 1)
+            user = db.session.get(User, int(uid))
+            if user:
+                import hashlib
+                current_sig = hashlib.sha256(user.password_hash.encode('utf-8')).hexdigest()[:8]
+                if current_sig == pass_sig:
+                    return user
+            return None
+        try:
+            return db.session.get(User, int(user_id))
+        except (ValueError, TypeError):
+            return None
 
     # Register blueprints (all 10)
     from app.routes import (
@@ -57,6 +71,13 @@ def create_app(config_name=None):
                     .limit(5).all()
             }
         return {'unread_notif_count': 0, 'recent_notifications': []}
+
+    # Security response headers
+    @app.after_request
+    def set_security_headers(response):
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        return response
 
     # Error handlers
     from flask import render_template

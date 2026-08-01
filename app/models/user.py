@@ -38,11 +38,16 @@ class User(UserMixin, db.Model):
 
     def average_rating(self):
         from app.models.rating import Rating
+        if 'ratings_received' in self.__dict__ and isinstance(self.__dict__['ratings_received'], list):
+            scores = [r.score for r in self.ratings_received]
+            return round(sum(scores) / len(scores), 1) if scores else 0.0
         avg_score = db.session.query(func.avg(Rating.score)).filter(Rating.rated_user_id == self.id).scalar()
         return round(float(avg_score), 1) if avg_score is not None else 0.0
 
     def rating_count(self):
         from app.models.rating import Rating
+        if 'ratings_received' in self.__dict__ and isinstance(self.__dict__['ratings_received'], list):
+            return len(self.ratings_received)
         return Rating.query.filter_by(rated_user_id=self.id).count()
 
     def completed_teaching_count(self):
@@ -56,6 +61,11 @@ class User(UserMixin, db.Model):
     def unread_notification_count(self):
         from app.models.notification import Notification
         return Notification.query.filter_by(user_id=self.id, is_read=False).count()
+
+    def get_id(self):
+        import hashlib
+        pass_sig = hashlib.sha256(self.password_hash.encode('utf-8')).hexdigest()[:8]
+        return f"{self.id}:{pass_sig}"
 
     def __repr__(self):
         return f'<User {self.username}>'
