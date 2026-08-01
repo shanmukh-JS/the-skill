@@ -8,13 +8,13 @@
   <p class="lead mb-4 mx-auto" style="max-width: 650px;">
     Connect with passionate individuals to exchange knowledge 1-on-1. Teach what you excel at, learn what you've always wanted to master.
   </p>
-  <div class="d-flex justify-content-center gap-3">
+  <div class="d-flex flex-column flex-sm-row justify-content-center gap-3 col-12 col-sm-10 col-md-8 mx-auto">
     {% if current_user.is_authenticated %}
-      <a href="{{ url_for('search.search_skills') }}" class="btn btn-light btn-lg px-4 fw-semibold text-primary">Browse Skills</a>
-      <a href="{{ url_for('skills.manage_skills') }}" class="btn btn-outline-light btn-lg px-4">Offer a Skill</a>
+      <a href="{{ url_for('search.search_skills') }}" class="btn btn-light btn-lg px-4 fw-semibold text-primary w-100 w-sm-auto">Browse Skills</a>
+      <a href="{{ url_for('skills.manage_skills') }}" class="btn btn-outline-light btn-lg px-4 w-100 w-sm-auto">Offer a Skill</a>
     {% else %}
-      <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg px-4 fw-semibold text-primary">Get Started Free</a>
-      <a href="{{ url_for('search.search_skills') }}" class="btn btn-outline-light btn-lg px-4">Explore Marketplace</a>
+      <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg px-4 fw-semibold text-primary w-100 w-sm-auto">Get Started Free</a>
+      <a href="{{ url_for('search.search_skills') }}" class="btn btn-outline-light btn-lg px-4 w-100 w-sm-auto">Explore Marketplace</a>
     {% endif %}
   </div>
 </div>

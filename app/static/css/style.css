@@ -166,6 +166,24 @@ main {
 
 /* Responsive Breakpoints & Mobile Optimization */
 @media (max-width: 991.98px) {
+  .navbar-collapse {
+    background: #0f172a;
+    padding: 1.25rem 1rem;
+    border-radius: 0.85rem;
+    margin-top: 0.75rem;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .navbar-nav .nav-link {
+    padding: 0.6rem 0.75rem;
+    border-radius: 0.5rem;
+  }
+  
+  .navbar-nav .nav-link:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
   .hero-gradient {
     padding: 3rem 1.25rem;
     border-radius: 1.25rem;
