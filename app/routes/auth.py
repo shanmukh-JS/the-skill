@@ -6,7 +6,7 @@ from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadTimeSignat
 from app.extensions import db
 from app.models.user import User
 from app.forms.auth_forms import RegistrationForm, LoginForm, ChangePasswordForm, ForgotPasswordForm, ResetPasswordForm
-from app.utils.rate_limiter import is_rate_limited, record_failed_login, reset_failed_logins
+from app.utils.rate_limiter import is_rate_limited, record_failed_login, reset_failed_logins, record_rate_limit_attempt
 from app.utils.email import send_password_reset_email
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
@@ -20,9 +20,11 @@ def register():
         return redirect(url_for('dashboard.index'))
         
     client_ip = request.remote_addr or '127.0.0.1'
-    if is_rate_limited(client_ip, 'register_attempt'):
-        flash('Too many registration attempts from your IP. Please try again in 15 minutes.', 'danger')
-        return render_template('auth/register.html', form=RegistrationForm())
+    if request.method == 'POST':
+        if is_rate_limited(client_ip, 'register_attempt'):
+            flash('Too many registration attempts from your IP. Please try again in 15 minutes.', 'danger')
+            return render_template('auth/register.html', form=RegistrationForm())
+        record_rate_limit_attempt(client_ip, 'register_attempt')
     
     form = RegistrationForm()
     if form.validate_on_submit():
@@ -111,9 +113,11 @@ def forgot_password():
         return redirect(url_for('dashboard.index'))
         
     client_ip = request.remote_addr or '127.0.0.1'
-    if is_rate_limited(client_ip, 'forgot_password_attempt'):
-        flash('Too many password reset requests from your IP. Please try again in 15 minutes.', 'danger')
-        return render_template('auth/forgot_password.html', form=ForgotPasswordForm())
+    if request.method == 'POST':
+        if is_rate_limited(client_ip, 'forgot_password_attempt'):
+            flash('Too many password reset requests from your IP. Please try again in 15 minutes.', 'danger')
+            return render_template('auth/forgot_password.html', form=ForgotPasswordForm())
+        record_rate_limit_attempt(client_ip, 'forgot_password_attempt')
         
     form = ForgotPasswordForm()
     if form.validate_on_submit():

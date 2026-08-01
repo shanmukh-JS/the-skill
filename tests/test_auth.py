@@ -112,6 +112,10 @@ def test_multi_device_session_invalidation_on_password_change(app, test_user):
     # Password change on Device 1
     c1.post('/auth/change-password', data={'current_password': 'Password123', 'new_password': 'NewPassword123!', 'confirm_password': 'NewPassword123!'}, follow_redirects=True)
 
+    from flask import g
+    if hasattr(g, '_login_user'):
+        delattr(g, '_login_user')
+
     # Device 2 request to protected route
     res_c2 = c2.get('/dashboard/', follow_redirects=False)
     assert res_c2.status_code == 302

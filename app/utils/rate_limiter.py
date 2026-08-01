@@ -17,6 +17,12 @@ def record_failed_login(ip_address, username):
     db.session.add(log)
     db.session.commit()
 
+def record_rate_limit_attempt(ip_address, action_tag):
+    cleanup_old_failed_logins()
+    log = FailedLogin(ip_address=ip_address, username=action_tag)
+    db.session.add(log)
+    db.session.commit()
+
 def is_rate_limited(ip_address, username, max_attempts=5, window_minutes=15, max_ip_attempts=15):
     """
     Dual-counter rate limiter:

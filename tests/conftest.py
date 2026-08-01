@@ -8,10 +8,17 @@ def app():
     app = create_app('testing')
     with app.app_context():
         _db.create_all()
-    yield app
-    with app.app_context():
+        yield app
         _db.session.remove()
         _db.drop_all()
+
+@pytest.fixture(autouse=True)
+def app_ctx(app):
+    ctx = app.app_context()
+    ctx.push()
+    yield
+    _db.session.remove()
+    ctx.pop()
 
 @pytest.fixture
 def client(app):
