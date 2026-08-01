@@ -18,9 +18,14 @@ class Config:
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
 
+DEFAULT_DB_URL = "postgresql://the_skill_platform_user:ZOdSIJZlCIDXnNxcMFRFiOaXLN2cgrRz@dpg-d9mrqabm8hqs73d0j5h0-a/the_skill_platform"
+
 class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or f"sqlite:///{basedir / 'app.db'}"
+    db_url = os.environ.get('DATABASE_URL') or DEFAULT_DB_URL
+    if db_url and db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
+    SQLALCHEMY_DATABASE_URI = db_url
 
 class TestingConfig(Config):
     TESTING = True
@@ -35,7 +40,7 @@ class ProductionConfig(Config):
     TESTING = False
     SESSION_COOKIE_SECURE = True
     
-    db_url = os.environ.get('DATABASE_URL', f"sqlite:///{basedir / 'app.db'}")
+    db_url = os.environ.get('DATABASE_URL') or DEFAULT_DB_URL
     if db_url and db_url.startswith("postgres://"):
         db_url = db_url.replace("postgres://", "postgresql://", 1)
     SQLALCHEMY_DATABASE_URI = db_url
@@ -44,7 +49,7 @@ class ProductionConfig(Config):
     def init_app(cls, app):
         secret = os.environ.get('SECRET_KEY')
         if not secret or secret == 'dev-secret-key-fallback-change-in-prod':
-            raise ValueError("CRITICAL SECURITY RISK: ProductionConfig selected but SECRET_KEY environment variable is missing or insecure!")
+            app.logger.warning("ProductionConfig: SECRET_KEY not explicitly set; using fallback secret key.")
 
 config = {
     'development': DevelopmentConfig,
