@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Skills & Interests — Skill Exchange Platform{% endblock %}
+
+{% block content %}
+<div class="row">
+  <!-- Taught Skills -->
+  <div class="col-lg-7 mb-4">
+    <div class="card custom-card p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold mb-0">Skills You Offer</h4>
+        <a href="{{ url_for('skills.add_skill') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-circle me-1"></i> Add New Skill</a>
+      </div>
+
+      {% if skills %}
+        <div class="list-group list-group-flush">
+          {% for skill in skills %}
+            <div class="list-group-item px-0 py-3 border-bottom">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <h5 class="fw-bold mb-1">{{ skill.name }}</h5>
+                  <span class="badge bg-primary-subtle text-primary badge-level">{{ skill.category }}</span>
+                  <span class="badge bg-secondary badge-level ms-1">{{ skill.proficiency_level }}</span>
+                  <p class="small text-muted mt-2 mb-0">{{ skill.description if skill.description else 'No description.' }}</p>
+                </div>
+                <div class="d-flex gap-2">
+                  <a href="{{ url_for('skills.edit_skill', skill_id=skill.id) }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i></a>
+                  <form action="{{ url_for('skills.delete_skill', skill_id=skill.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to remove this skill?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i></button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-state-icon"><i class="bi bi-journal-x"></i></div>
+          <h6>No skills listed yet</h6>
+          <p class="text-muted small">Share your skills so others can send you learning requests!</p>
+          <a href="{{ url_for('skills.add_skill') }}" class="btn btn-primary btn-sm">Add Skill Now</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Learning Interests -->
+  <div class="col-lg-5">
+    <div class="card custom-card p-4">
+      <h4 class="fw-bold mb-3">Skills You Want to Learn</h4>
+
+      <form action="{{ url_for('skills.add_interest') }}" method="POST" class="mb-4">
+        {{ interest_form.hidden_tag() }}
+        <div class="mb-2">
+          {{ interest_form.skill_name(class="form-control form-control-sm", placeholder="Skill name (e.g. Spanish, Python)") }}
+        </div>
+        <div class="mb-2">
+          {{ interest_form.category(class="form-control form-control-sm", placeholder="Category (Optional)") }}
+        </div>
+        <button type="submit" class="btn btn-secondary btn-sm w-100"><i class="bi bi-plus me-1"></i> Add Interest</button>
+      </form>
+
+      {% if interests %}
+        <ul class="list-group">
+          {% for interest in interests %}
+            <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+              <div>
+                <strong>{{ interest.skill_name }}</strong>
+                {% if interest.category %}<small class="text-muted">({{ interest.category }})</small>{% endif %}
+              </div>
+              <form action="{{ url_for('skills.delete_interest', interest_id=interest.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-link text-danger p-0 border-0"><i class="bi bi-x-circle"></i></button>
+              </form>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted small mb-0">No learning interests added yet.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

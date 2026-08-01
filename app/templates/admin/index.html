@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Portal — Skill Exchange Platform{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="fw-bold mb-0"><i class="bi bi-shield-lock text-primary me-2"></i> Administrator Portal</h2>
+  <a href="{{ url_for('admin.analytics') }}" class="btn btn-primary"><i class="bi bi-graph-up me-1"></i> System Analytics</a>
+</div>
+
+<!-- Admin Stat Cards -->
+<div class="row mb-4">
+  <div class="col-12 col-sm-6 col-md-3 mb-3">
+    <div class="card custom-card p-3 text-center border-start border-primary border-4">
+      <div class="text-muted small">Total Users</div>
+      <div class="fs-2 fw-bold text-primary">{{ user_count }}</div>
+      <div class="small text-success">{{ active_users }} Active</div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-md-3 mb-3">
+    <div class="card custom-card p-3 text-center border-start border-info border-4">
+      <div class="text-muted small">Active Skills</div>
+      <div class="fs-2 fw-bold text-info">{{ skill_count }}</div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-md-3 mb-3">
+    <div class="card custom-card p-3 text-center border-start border-warning border-4">
+      <div class="text-muted small">Total Requests</div>
+      <div class="fs-2 fw-bold text-warning">{{ request_count }}</div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-md-3 mb-3">
+    <div class="card custom-card p-3 text-center border-start border-success border-4">
+      <div class="text-muted small">Completed Sessions</div>
+      <div class="fs-2 fw-bold text-success">{{ completed_sessions }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-6 mb-4">
+    <div class="card custom-card p-4">
+      <h5 class="fw-bold mb-3"><i class="bi bi-people me-2 text-primary"></i> User Management</h5>
+      <p class="text-muted small">Search users, inspect profiles, and perform soft-deactivation (soft-ban) to maintain safety while keeping referential integrity.</p>
+      <a href="{{ url_for('admin.users_list') }}" class="btn btn-outline-primary"><i class="bi bi-person-gear me-1"></i> Manage Users</a>
+    </div>
+  </div>
+  <div class="col-md-6 mb-4">
+    <div class="card custom-card p-4">
+      <h5 class="fw-bold mb-3"><i class="bi bi-journal-code me-2 text-info"></i> Skill Moderation</h5>
+      <p class="text-muted small">Review all posted skill listings, remove inappropriate content, or restore soft-deleted listings.</p>
+      <a href="{{ url_for('admin.skills_list') }}" class="btn btn-outline-info"><i class="bi bi-pencil-square me-1"></i> Moderate Skills</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

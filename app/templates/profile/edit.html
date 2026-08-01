@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Profile — Skill Exchange Platform{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card custom-card p-4">
+      <h3 class="fw-bold mb-4">Edit Profile</h3>
+
+      <form method="POST" action="{{ url_for('profile.edit_profile') }}" enctype="multipart/form-data" novalidate>
+        {{ form.hidden_tag() }}
+
+        <div class="mb-3">
+          {{ form.bio.label(class="form-label fw-semibold") }}
+          {{ form.bio(class="form-control" + (" is-invalid" if form.bio.errors else ""), rows="4", placeholder="Tell others about your background, experience, or what you love teaching!") }}
+          <div class="form-text small">Maximum 500 characters. Plain text only.</div>
+          {% for error in form.bio.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="mb-4">
+          {{ form.profile_picture.label(class="form-label fw-semibold") }}
+          {{ form.profile_picture(class="form-control" + (" is-invalid" if form.profile_picture.errors else "")) }}
+          <div class="form-text small">Accepted formats: JPG, JPEG, PNG. Max file size: 2MB.</div>
+          {% for error in form.profile_picture.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center">
+          <a href="{{ url_for('profile.view_profile') }}" class="btn btn-outline-secondary">Cancel</a>
+          {{ form.submit(class="btn btn-primary fw-semibold") }}
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

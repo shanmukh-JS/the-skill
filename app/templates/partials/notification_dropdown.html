@@ -1,0 +1,29 @@
+<div class="dropdown me-3">
+  <a class="nav-link text-light position-relative dropdown-toggle" href="#" id="notifDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <i class="bi bi-bell-fill fs-5"></i>
+    {% if unread_notif_count > 0 %}
+      <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
+        {{ unread_notif_count }}
+      </span>
+    {% endif %}
+  </a>
+  <ul class="dropdown-menu dropdown-menu-end shadow-lg" aria-labelledby="notifDropdown" style="width: 320px; max-height: 400px; overflow-y: auto;">
+    <li class="dropdown-header d-flex justify-content-between align-items-center">
+      <span class="fw-bold">Notifications</span>
+      <a href="{{ url_for('dashboard.notifications') }}" class="small text-decoration-none">View All</a>
+    </li>
+    <li><hr class="dropdown-divider"></li>
+    {% if current_user.notifications.count() > 0 %}
+      {% for notif in current_user.notifications.order_by(current_user.notifications.model.created_at.desc()).limit(5).all() %}
+        <li>
+          <a class="dropdown-item py-2 px-3 {% if not notif.is_read %}bg-light fw-bold{% endif %}" href="{{ url_for('dashboard.notifications') }}">
+            <div class="small">{{ notif.message }}</div>
+            <div class="text-muted" style="font-size: 0.7rem;">{{ notif.created_at.strftime('%b %d, %H:%M') }}</div>
+          </a>
+        </li>
+      {% endfor %}
+    {% else %}
+      <li class="dropdown-item text-muted text-center py-3">No notifications yet</li>
+    {% endif %}
+  </ul>
+</div>

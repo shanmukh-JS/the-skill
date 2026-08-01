@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Rating — Skill Exchange Platform{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card custom-card p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="fw-bold mb-0">Edit Rating & Review</h3>
+        <span class="badge bg-info text-dark">Within 24h Window</span>
+      </div>
+
+      <form method="POST" action="{{ url_for('ratings.edit_rating', rating_id=rating.id) }}" novalidate>
+        {{ form.hidden_tag() }}
+
+        <div class="mb-3">
+          {{ form.score.label(class="form-label fw-semibold") }}
+          {{ form.score(class="form-select" + (" is-invalid" if form.score.errors else "")) }}
+          {% for error in form.score.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="mb-4">
+          {{ form.review_text.label(class="form-label fw-semibold") }}
+          {{ form.review_text(class="form-control" + (" is-invalid" if form.review_text.errors else ""), rows="4") }}
+          {% for error in form.review_text.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center">
+          <form action="{{ url_for('ratings.delete_rating', rating_id=rating.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this rating?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-outline-danger">Delete Rating</button>
+          </form>
+          {{ form.submit(class="btn btn-primary fw-semibold") }}
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

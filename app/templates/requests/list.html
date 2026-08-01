@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}Learning Requests — Skill Exchange Platform{% endblock %}
+
+{% block content %}
+<div class="card custom-card p-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold mb-0"><i class="bi bi-envelope-paper text-primary me-2"></i> Learning Requests</h3>
+    <div class="btn-group">
+      <a href="{{ url_for('requests.list_requests', tab='received') }}" class="btn btn-outline-primary btn-sm {% if tab == 'received' %}active{% endif %}">
+        Received Requests
+      </a>
+      <a href="{{ url_for('requests.list_requests', tab='sent') }}" class="btn btn-outline-primary btn-sm {% if tab == 'sent' %}active{% endif %}">
+        Sent Requests
+      </a>
+    </div>
+  </div>
+
+  {% if requests %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Skill</th>
+            <th>{% if tab == 'sent' %}Teacher{% else %}Learner{% endif %}</th>
+            <th>Message</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for req in requests %}
+            <tr>
+              <td>
+                <span class="fw-bold">{{ req.skill.name }}</span>
+                <div class="small text-muted">{{ req.skill.category }}</div>
+              </td>
+              <td>
+                {% if tab == 'sent' %}
+                  <a href="{{ url_for('search.teacher_profile', user_id=req.receiver.id) }}" class="text-decoration-none fw-semibold">
+                    {{ req.receiver.username }}
+                  </a>
+                {% else %}
+                  <a href="{{ url_for('profile.view_profile', username=req.sender.username) }}" class="text-decoration-none fw-semibold">
+                    {{ req.sender.username }}
+                  </a>
+                {% endif %}
+              </td>
+              <td class="small text-muted" style="max-width: 250px;">
+                {{ req.message if req.message else 'No message attached.' }}
+              </td>
+              <td>
+                {% if req.status == 'pending' %}
+                  <span class="badge bg-warning text-dark">Pending</span>
+                {% elif req.status == 'accepted' %}
+                  <span class="badge bg-success">Accepted</span>
+                {% elif req.status == 'rejected' %}
+                  <span class="badge bg-danger">Declined</span>
+                {% elif req.status == 'cancelled' %}
+                  <span class="badge bg-secondary">Cancelled</span>
+                {% elif req.status == 'completed' %}
+                  <span class="badge bg-info text-dark">Completed</span>
+                {% endif %}
+              </td>
+              <td class="small text-muted">{{ req.created_at.strftime('%b %d, %Y') }}</td>
+              <td class="text-end">
+                {% if req.status == 'pending' %}
+                  {% if tab == 'received' %}
+                    <form action="{{ url_for('requests.accept_request', request_id=req.id) }}" method="POST" class="d-inline">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="btn btn-success btn-sm me-1"><i class="bi bi-check-lg"></i> Accept</button>
+                    </form>
+                    <form action="{{ url_for('requests.reject_request', request_id=req.id) }}" method="POST" class="d-inline">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-x-lg"></i> Decline</button>
+                    </form>
+                  {% else %}
+                    <form action="{{ url_for('requests.cancel_request', request_id=req.id) }}" method="POST" class="d-inline">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-slash-circle"></i> Cancel</button>
+                    </form>
+                  {% endif %}
+                {% elif req.status == 'accepted' %}
+                  <a href="{{ url_for('chat.chat_room', request_id=req.id) }}" class="btn btn-primary btn-sm me-1"><i class="bi bi-chat"></i> Chat</a>
+                  <form action="{{ url_for('requests.complete_request', request_id=req.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Mark this learning session as completed?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-outline-success btn-sm"><i class="bi bi-check-circle"></i> Complete</button>
+                  </form>
+                {% elif req.status == 'completed' %}
+                  <a href="{{ url_for('ratings.give_rating', request_id=req.id) }}" class="btn btn-outline-warning btn-sm"><i class="bi bi-star"></i> Rate Session</a>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon"><i class="bi bi-inbox"></i></div>
+      <h5>No {{ tab }} requests found</h5>
+      <p class="text-muted small">
+        {% if tab == 'sent' %}
+          You haven't sent any learning requests yet. Find a skill you want to learn!
+        {% else %}
+          You haven't received any learning requests yet. Make sure your offered skills are detailed!
+        {% endif %}
+      </p>
+      {% if tab == 'sent' %}
+        <a href="{{ url_for('search.search_skills') }}" class="btn btn-primary btn-sm">Explore Skills</a>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

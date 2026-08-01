@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Skill Exchange — Learn & Teach Skills{% endblock %}
+
+{% block content %}
+<div class="hero-gradient mb-5 text-center">
+  <h1 class="display-4 fw-bold mb-3">Swap Skills. Expand Horizons.</h1>
+  <p class="lead mb-4 mx-auto" style="max-width: 650px;">
+    Connect with passionate individuals to exchange knowledge 1-on-1. Teach what you excel at, learn what you've always wanted to master.
+  </p>
+  <div class="d-flex justify-content-center gap-3">
+    {% if current_user.is_authenticated %}
+      <a href="{{ url_for('search.search_skills') }}" class="btn btn-light btn-lg px-4 fw-semibold text-primary">Browse Skills</a>
+      <a href="{{ url_for('skills.manage_skills') }}" class="btn btn-outline-light btn-lg px-4">Offer a Skill</a>
+    {% else %}
+      <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg px-4 fw-semibold text-primary">Get Started Free</a>
+      <a href="{{ url_for('search.search_skills') }}" class="btn btn-outline-light btn-lg px-4">Explore Marketplace</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row text-center mb-5">
+  <div class="col-12 col-md-4 mb-3">
+    <div class="card custom-card p-4 h-100">
+      <div class="fs-1 text-primary mb-2"><i class="bi bi-mortarboard"></i></div>
+      <h5 class="fw-bold">1-on-1 Peer Learning</h5>
+      <p class="text-muted small">Direct mentorship from real practitioners across hundreds of skill categories.</p>
+    </div>
+  </div>
+  <div class="col-12 col-md-4 mb-3">
+    <div class="card custom-card p-4 h-100">
+      <div class="fs-1 text-info mb-2"><i class="bi bi-chat-dots"></i></div>
+      <h5 class="fw-bold">Real-time Coordination</h5>
+      <p class="text-muted small">Integrated chat and request management system for smooth scheduling.</p>
+    </div>
+  </div>
+  <div class="col-12 col-md-4 mb-3">
+    <div class="card custom-card p-4 h-100">
+      <div class="fs-1 text-success mb-2"><i class="bi bi-star-half"></i></div>
+      <h5 class="fw-bold">Verified Ratings</h5>
+      <p class="text-muted small">Transparent peer feedback after completed sessions ensures high quality exchanges.</p>
+    </div>
+  </div>
+</div>
+
+<div class="mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="fw-bold mb-0">Featured Skills Offered</h3>
+    <a href="{{ url_for('search.search_skills') }}" class="text-decoration-none fw-semibold">View All <i class="bi bi-arrow-right"></i></a>
+  </div>
+  
+  {% if featured_skills %}
+    <div class="row">
+      {% for skill in featured_skills %}
+        <div class="col-12 col-md-6 col-lg-4 mb-4">
+          <div class="card custom-card h-100">
+            <div class="card-body d-flex flex-column">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge bg-primary-subtle text-primary badge-level">{{ skill.category }}</span>
+                <span class="badge bg-secondary badge-level">{{ skill.proficiency_level }}</span>
+              </div>
+              <h5 class="card-title fw-bold">{{ skill.name }}</h5>
+              <p class="card-text text-muted small flex-grow-1">{{ skill.description|truncate(100) if skill.description else 'No description provided.' }}</p>
+              <hr>
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="small">
+                  <i class="bi bi-person-circle me-1"></i> {{ skill.teacher.username }}
+                  <span class="text-warning ms-1"><i class="bi bi-star-fill"></i> {{ skill.teacher.average_rating() }}</span>
+                </div>
+                <a href="{{ url_for('search.teacher_profile', user_id=skill.teacher.id) }}" class="btn btn-outline-primary btn-sm">View Teacher</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon"><i class="bi bi-journal-x"></i></div>
+      <h5>No skills listed yet</h5>
+      <p class="text-muted">Be the first to share your expertise with the community!</p>
+      {% if current_user.is_authenticated %}
+        <a href="{{ url_for('skills.manage_skills') }}" class="btn btn-primary btn-sm">Post a Skill</a>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

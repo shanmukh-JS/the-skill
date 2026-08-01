@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Learning History — Skill Exchange Platform{% endblock %}
+
+{% block content %}
+<div class="card custom-card p-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold mb-0"><i class="bi bi-clock-history text-primary me-2"></i> Learning History Log</h3>
+    <div class="btn-group">
+      <a href="{{ url_for('dashboard.history', role='all') }}" class="btn btn-outline-primary btn-sm {% if role_filter == 'all' %}active{% endif %}">All</a>
+      <a href="{{ url_for('dashboard.history', role='teacher') }}" class="btn btn-outline-primary btn-sm {% if role_filter == 'teacher' %}active{% endif %}">As Teacher</a>
+      <a href="{{ url_for('dashboard.history', role='learner') }}" class="btn btn-outline-primary btn-sm {% if role_filter == 'learner' %}active{% endif %}">As Learner</a>
+    </div>
+  </div>
+
+  {% if records %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Skill</th>
+            <th>Role</th>
+            <th>Counterpart</th>
+            <th>Completed Date</th>
+            <th class="text-end">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for record in records %}
+            {% set req = record.request_obj %}
+            {% set counterpart = req.sender if record.role == 'teacher' else req.receiver %}
+            <tr>
+              <td>
+                <span class="fw-bold">{{ record.skill.name }}</span>
+                <div class="small text-muted">{{ record.skill.category }}</div>
+              </td>
+              <td>
+                {% if record.role == 'teacher' %}
+                  <span class="badge bg-success">Teacher</span>
+                {% else %}
+                  <span class="badge bg-info text-dark">Learner</span>
+                {% endif %}
+              </td>
+              <td>
+                <a href="{{ url_for('profile.view_profile', username=counterpart.username) }}" class="text-decoration-none fw-semibold">
+                  {{ counterpart.username }}
+                </a>
+              </td>
+              <td class="small text-muted">{{ record.completed_at.strftime('%b %d, %Y') }}</td>
+              <td class="text-end">
+                <a href="{{ url_for('ratings.give_rating', request_id=req.id) }}" class="btn btn-outline-warning btn-sm">Rate / View Review</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon"><i class="bi bi-journal-check"></i></div>
+      <h5>No completed learning sessions found</h5>
+      <p class="text-muted small">Completed learning sessions will automatically populate your official history log here.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

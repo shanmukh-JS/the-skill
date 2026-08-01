@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ teacher.username }} — Teacher Profile{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-4 mb-4">
+    <div class="card custom-card text-center p-4">
+      <div class="mb-3">
+        {% if teacher.profile_picture and teacher.profile_picture != 'default_avatar.png' %}
+          <img src="{{ url_for('static', filename='uploads/profile_pics/' + teacher.profile_picture) }}" class="rounded-circle img-thumbnail shadow-sm" style="width: 120px; height: 120px; object-fit: cover;" alt="{{ teacher.username }}">
+        {% else %}
+          <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center shadow-sm" style="width: 120px; height: 120px; font-size: 3rem;">
+            {{ teacher.username[0]|upper }}
+          </div>
+        {% endif %}
+      </div>
+      <h4 class="fw-bold mb-1">{{ teacher.username }}</h4>
+      <div class="text-warning fs-5 fw-bold mb-2">
+        <i class="bi bi-star-fill"></i> {{ teacher.average_rating() }}
+        <span class="text-muted fs-6">({{ teacher.rating_count() }} rating{{ 's' if teacher.rating_count() != 1 else '' }})</span>
+      </div>
+      <p class="small text-secondary bg-light p-3 rounded text-start mb-0">
+        {{ teacher.bio if teacher.bio else 'No bio provided.' }}
+      </p>
+    </div>
+  </div>
+
+  <div class="col-md-8">
+    <div class="card custom-card p-4 mb-4">
+      <h5 class="fw-bold mb-3"><i class="bi bi-journal-check text-primary me-2"></i> Skills Offered by {{ teacher.username }}</h5>
+      {% if taught_skills %}
+        <div class="list-group list-group-flush">
+          {% for skill in taught_skills %}
+            <div class="list-group-item px-0 py-3 border-bottom">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <h6 class="fw-bold mb-1">{{ skill.name }}</h6>
+                  <span class="badge bg-primary-subtle text-primary badge-level">{{ skill.category }}</span>
+                  <span class="badge bg-secondary badge-level ms-1">{{ skill.proficiency_level }}</span>
+                  <p class="small text-muted mt-2 mb-0">{{ skill.description if skill.description else 'No description provided.' }}</p>
+                </div>
+                {% if current_user.is_authenticated and current_user.id != teacher.id %}
+                  <a href="{{ url_for('requests.send_request', skill_id=skill.id) }}" class="btn btn-primary btn-sm px-3">Send Request</a>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted small mb-0">This teacher currently has no active skills listed.</p>
+      {% endif %}
+    </div>
+
+    <!-- Reviews section -->
+    <div class="card custom-card p-4">
+      <h5 class="fw-bold mb-3"><i class="bi bi-chat-quote text-success me-2"></i> Student Feedback & Reviews</h5>
+      {% if reviews %}
+        {% for review in reviews %}
+          <div class="border-bottom pb-3 mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <strong>{{ review.rater.username }}</strong>
+                <span class="text-warning ms-2">
+                  {% for n in range(review.score) %}<i class="bi bi-star-fill"></i>{% endfor %}
+                </span>
+              </div>
+              <small class="text-muted">{{ review.created_at.strftime('%b %d, %Y') }}</small>
+            </div>
+            <p class="small text-secondary mt-2 mb-0">{{ review.review_text if review.review_text else 'No comment provided.' }}</p>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="text-muted small mb-0">No student reviews yet.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

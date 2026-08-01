@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}System Health & Analytics — Admin Portal{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="fw-bold mb-0"><i class="bi bi-graph-up text-primary me-2"></i> System Health & Analytics</h2>
+  <a href="{{ url_for('admin.index') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back to Admin Portal</a>
+</div>
+
+<!-- Request Status Breakdown & System Backlog Alert -->
+<div class="row mb-4">
+  <div class="col-md-8">
+    <div class="card custom-card p-4 h-100">
+      <h5 class="fw-bold mb-3"><i class="bi bi-pie-chart text-warning me-2"></i> Learning Requests Status Distribution</h5>
+      <div class="table-responsive">
+        <table class="table table-bordered text-center align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Pending</th>
+              <th>Accepted</th>
+              <th>Completed</th>
+              <th>Declined</th>
+              <th>Cancelled</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="badge bg-warning text-dark fs-6">{{ status_counts.get('pending', 0) }}</span></td>
+              <td><span class="badge bg-success fs-6">{{ status_counts.get('accepted', 0) }}</span></td>
+              <td><span class="badge bg-info text-dark fs-6">{{ status_counts.get('completed', 0) }}</span></td>
+              <td><span class="badge bg-danger fs-6">{{ status_counts.get('rejected', 0) }}</span></td>
+              <td><span class="badge bg-secondary fs-6">{{ status_counts.get('cancelled', 0) }}</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card custom-card p-4 h-100 bg-light">
+      <h5 class="fw-bold mb-2 text-danger"><i class="bi bi-exclamation-triangle me-2"></i> System Health</h5>
+      <p class="small text-muted mb-3">Monitors stalled or unhandled platform requests.</p>
+      <div class="p-3 bg-white border rounded">
+        <div class="fs-3 fw-bold text-danger">{{ old_pending_count }}</div>
+        <div class="small text-secondary">Pending requests > 7 days old requiring response</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Most Popular Skills -->
+  <div class="col-md-4 mb-4">
+    <div class="card custom-card p-4 h-100">
+      <h5 class="fw-bold mb-3"><i class="bi bg-primary text-white rounded p-1 bi-fire me-2 fs-6"></i> Most Popular Skills</h5>
+      {% if popular_skills %}
+        <ul class="list-group list-group-flush">
+          {% for item in popular_skills %}
+            <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+              <div>
+                <strong class="small d-block">{{ item.name }}</strong>
+                <small class="text-muted">{{ item.teacher }} ({{ item.category }})</small>
+              </div>
+              <span class="badge bg-primary rounded-pill">{{ item.request_count }} reqs</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted small">No request statistics recorded yet.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Top-Rated Teachers -->
+  <div class="col-md-4 mb-4">
+    <div class="card custom-card p-4 h-100">
+      <h5 class="fw-bold mb-3"><i class="bi bi-award text-warning me-2"></i> Top-Rated Teachers</h5>
+      <p class="small text-muted mb-2">Minimum threshold: 3+ ratings</p>
+      {% if top_teachers %}
+        <ul class="list-group list-group-flush">
+          {% for user, avg_score, review_count in top_teachers %}
+            <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+              <div>
+                <strong class="small">{{ user.username }}</strong>
+                <small class="text-muted d-block">{{ review_count }} reviews</small>
+              </div>
+              <span class="badge bg-warning text-dark rounded-pill"><i class="bi bi-star-fill"></i> {{ "%.1f"|format(avg_score) }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted small">No teachers have reached the 3+ rating threshold yet.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Active Learners -->
+  <div class="col-md-4 mb-4">
+    <div class="card custom-card p-4 h-100">
+      <h5 class="fw-bold mb-3"><i class="bi bi-person-up text-success me-2"></i> Active Learners (Last 30d)</h5>
+      {% if active_learners %}
+        <ul class="list-group list-group-flush">
+          {% for user, recent_count in active_learners %}
+            <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+              <strong class="small">{{ user.username }}</strong>
+              <span class="badge bg-success rounded-pill">{{ recent_count }} sent</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted small">No request activity recorded in the past 30 days.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

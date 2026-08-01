@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard — Skill Exchange Platform{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="fw-bold mb-0">Welcome, {{ current_user.username }}!</h2>
+  <a href="{{ url_for('skills.add_skill') }}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i> Offer New Skill</a>
+</div>
+
+<!-- Stat Cards -->
+<div class="row mb-4">
+  <div class="col-12 col-sm-6 col-md-3 mb-3">
+    <div class="card custom-card p-3 text-center border-start border-primary border-4">
+      <div class="text-muted small">Skills Taught</div>
+      <div class="fs-2 fw-bold text-primary">{{ taught_count }}</div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-md-3 mb-3">
+    <div class="card custom-card p-3 text-center border-start border-warning border-4">
+      <div class="text-muted small">Active Requests</div>
+      <div class="fs-2 fw-bold text-warning">{{ active_requests_count }}</div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-md-3 mb-3">
+    <div class="card custom-card p-3 text-center border-start border-success border-4">
+      <div class="text-muted small">Average Rating</div>
+      <div class="fs-2 fw-bold text-success"><i class="bi bi-star-fill text-warning me-1"></i>{{ avg_rating }}</div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-md-3 mb-3">
+    <div class="card custom-card p-3 text-center border-start border-info border-4">
+      <div class="text-muted small">Completed Sessions</div>
+      <div class="fs-2 fw-bold text-info">{{ completed_teaching + completed_learning }}</div>
+      <div class="small text-muted">Teacher: {{ completed_teaching }} | Learner: {{ completed_learning }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Left Column: Pending Actions & Quick Links -->
+  <div class="col-lg-6 mb-4">
+    <!-- Pending Requests Action Box -->
+    <div class="card custom-card p-4 mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0"><i class="bi bi-exclamation-circle text-warning me-2"></i> Requests Awaiting Your Action</h5>
+        <a href="{{ url_for('requests.list_requests') }}" class="small text-decoration-none">View All</a>
+      </div>
+      {% if pending_action_requests %}
+        <div class="list-group list-group-flush">
+          {% for req in pending_action_requests %}
+            <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+              <div>
+                <strong>{{ req.sender.username }}</strong> wants to learn <strong>{{ req.skill.name }}</strong>
+                <div class="small text-muted">{{ req.created_at.strftime('%b %d, %H:%M') }}</div>
+              </div>
+              <div>
+                <form action="{{ url_for('requests.accept_request', request_id=req.id) }}" method="POST" class="d-inline">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn-success btn-sm me-1"><i class="bi bi-check"></i></button>
+                </form>
+                <form action="{{ url_for('requests.reject_request', request_id=req.id) }}" method="POST" class="d-inline">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-x"></i></button>
+                </form>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted small mb-0">No pending requests requiring your response right now.</p>
+      {% endif %}
+    </div>
+
+    <!-- Quick Navigation -->
+    <div class="card custom-card p-4">
+      <h5 class="fw-bold mb-3"><i class="bi bi-lightning-charge text-primary me-2"></i> Quick Actions</h5>
+      <div class="d-grid gap-2">
+        <a href="{{ url_for('search.search_skills') }}" class="btn btn-outline-primary text-start"><i class="bi bi-search me-2"></i> Search Skills & Teachers</a>
+        <a href="{{ url_for('skills.manage_skills') }}" class="btn btn-outline-secondary text-start"><i class="bi bi-journal-plus me-2"></i> Manage Skills Offered & Interests</a>
+        <a href="{{ url_for('dashboard.history') }}" class="btn btn-outline-dark text-start"><i class="bi bi-clock-history me-2"></i> View Learning History Log</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Recent Messages -->
+  <div class="col-lg-6 mb-4">
+    <div class="card custom-card p-4 h-100">
+      <h5 class="fw-bold mb-3"><i class="bi bi-chat-left-dots text-info me-2"></i> Recent Conversations</h5>
+      {% if recent_messages %}
+        <div class="list-group list-group-flush">
+          {% for item in recent_messages %}
+            {% set req = item.chat.request %}
+            {% set other = req.sender if current_user.id == req.receiver_id else req.receiver %}
+            <a href="{{ url_for('chat.chat_room', request_id=req.id) }}" class="list-group-item list-group-item-action px-0 py-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fw-bold">{{ other.username }}</span>
+                <small class="text-muted">{{ item.message.sent_at.strftime('%b %d, %H:%M') }}</small>
+              </div>
+              <div class="small text-secondary text-truncate">{{ item.message.content }}</div>
+              <div class="small text-muted mt-1" style="font-size: 0.75rem;">Skill: {{ req.skill.name }}</div>
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-center text-muted py-4">
+          <i class="bi bi-chat-square-x fs-2 opacity-50 d-block mb-2"></i>
+          <p class="small mb-0">No active chats yet. Accept or send a request to start chatting!</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

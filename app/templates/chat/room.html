@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Chat with {{ other_user.username }} — Skill Exchange{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-9">
+    <div class="card custom-card p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+        <div class="d-flex align-items-center gap-3">
+          <a href="{{ url_for('requests.list_requests') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+          <div>
+            <h5 class="fw-bold mb-0">Chat with {{ other_user.username }}</h5>
+            <small class="text-muted">Skill: <strong>{{ request_obj.skill.name }}</strong></small>
+          </div>
+        </div>
+        <div>
+          {% if request_obj.status == 'accepted' %}
+            <form action="{{ url_for('requests.complete_request', request_id=request_obj.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Mark session completed?');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-success btn-sm"><i class="bi bi-check-circle me-1"></i> Mark Complete</button>
+            </form>
+          {% elif request_obj.status == 'completed' %}
+            <span class="badge bg-info text-dark me-2">Session Completed</span>
+            <a href="{{ url_for('ratings.give_rating', request_id=request_obj.id) }}" class="btn btn-warning btn-sm"><i class="bi bi-star me-1"></i> Rate</a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Chat Box -->
+      {% set last_id = messages[-1].id if messages else 0 %}
+      <div id="chatBox" class="chat-container mb-3" data-chat-id="{{ chat.id }}" data-last-id="{{ last_id }}">
+        {% if messages %}
+          {% for msg in messages %}
+            {% set is_me = (msg.sender_id == current_user.id) %}
+            <div class="message-bubble {% if is_me %}message-sent{% else %}message-received{% endif %}">
+              <div class="small text-muted mb-1" style="{% if is_me %}color: #e0e7ff !important;{% endif %}">{{ msg.sender.username }}</div>
+              <div>{{ msg.content }}</div>
+              <div class="small text-end mt-1 opacity-75" style="font-size: 0.7rem;">{{ msg.sent_at.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-center text-muted py-5 my-auto" id="noMessagesPlaceholder">
+            <i class="bi bi-chat-left-text fs-1 mb-2 d-block opacity-50"></i>
+            <p>No messages yet. Say hello and start coordinating your session!</p>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Input Form -->
+      <form id="chatForm" action="{{ url_for('chat.send_message', chat_id=chat.id) }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="input-group">
+          <input type="text" id="messageInput" name="content" class="form-control" placeholder="Type a message..." autocomplete="off" required>
+          <button type="submit" class="btn btn-primary px-4"><i class="bi bi-send-fill"></i></button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

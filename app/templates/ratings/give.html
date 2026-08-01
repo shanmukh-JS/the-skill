@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}Rate Session — Skill Exchange Platform{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card custom-card p-4">
+      <h3 class="fw-bold mb-2">Rate & Review Session</h3>
+      <p class="text-muted small mb-4">Skill: <strong>{{ request_obj.skill.name }}</strong></p>
+
+      <form method="POST" action="{{ url_for('ratings.give_rating', request_id=request_obj.id) }}" novalidate>
+        {{ form.hidden_tag() }}
+
+        <div class="mb-3">
+          {{ form.score.label(class="form-label fw-semibold") }}
+          {{ form.score(class="form-select" + (" is-invalid" if form.score.errors else "")) }}
+          {% for error in form.score.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="mb-4">
+          {{ form.review_text.label(class="form-label fw-semibold") }}
+          {{ form.review_text(class="form-control" + (" is-invalid" if form.review_text.errors else ""), rows="4", placeholder="Share feedback about your learning experience...") }}
+          {% for error in form.review_text.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center">
+          <a href="{{ url_for('requests.list_requests') }}" class="btn btn-outline-secondary">Skip / Later</a>
+          {{ form.submit(class="btn btn-primary fw-semibold") }}
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Register — Skill Exchange Platform{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card custom-card p-4">
+      <h3 class="fw-bold text-center mb-2">Create an Account</h3>
+      <p class="text-muted text-center small mb-4">Join our community to start teaching and learning skills.</p>
+
+      <form method="POST" action="{{ url_for('auth.register') }}" novalidate>
+        {{ form.hidden_tag() }}
+
+        <div class="mb-3">
+          {{ form.username.label(class="form-label fw-semibold") }}
+          {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else ""), placeholder="3 to 80 characters") }}
+          {% for error in form.username.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="mb-3">
+          {{ form.email.label(class="form-label fw-semibold") }}
+          {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="name@example.com") }}
+          {% for error in form.email.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="mb-3">
+          {{ form.password.label(class="form-label fw-semibold") }}
+          {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Min 8 characters (letters & numbers)") }}
+          <div class="form-text small">Password must be at least 8 characters long and include at least one letter and one digit.</div>
+          {% for error in form.password.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="mb-3">
+          {{ form.confirm_password.label(class="form-label fw-semibold") }}
+          {{ form.confirm_password(class="form-control" + (" is-invalid" if form.confirm_password.errors else ""), placeholder="Re-enter password") }}
+          {% for error in form.confirm_password.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="d-grid gap-2 mt-4">
+          {{ form.submit(class="btn btn-primary btn-lg fw-semibold") }}
+        </div>
+      </form>
+
+      <div class="text-center mt-3 small">
+        Already registered? <a href="{{ url_for('auth.login') }}" class="fw-bold text-decoration-none">Log in here</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
